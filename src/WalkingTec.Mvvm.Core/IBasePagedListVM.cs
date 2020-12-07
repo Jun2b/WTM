@@ -1,7 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -16,12 +14,11 @@ namespace WalkingTec.Mvvm.Core
         where T : TopBasePoco
         where S : ISearcher
     {
-        DataTable EntityDataTable { get; set; }
 
         /// <summary>
         /// 多级表头深度  默认 1级
         /// </summary>
-        int ChildrenDepth { get; set; }
+        int GetChildrenDepth();
 
         /// <summary>
         /// GetHeaders
@@ -33,7 +30,7 @@ namespace WalkingTec.Mvvm.Core
         /// <summary>
         /// 页面动作
         /// </summary>
-        List<GridAction> GridActions { get; }
+        List<GridAction> GetGridActions();
 
         /// <summary>
         /// 查询并生成Excel
@@ -41,12 +38,13 @@ namespace WalkingTec.Mvvm.Core
         /// <returns>Excel文件</returns>
         byte[] GenerateExcel();
 
+        string TotalText { get; set; }
         #region Old
         event Action<IBasePagedListVM<T, S>> OnAfterInitList;
         /// <summary>
         ///记录批量操作时列表中选择的Id
         /// </summary>
-        List<Guid> Ids { get; set; }
+        List<string> Ids { get; set; }
 
         /// <summary>
         /// 获取Model集合
@@ -91,6 +89,16 @@ namespace WalkingTec.Mvvm.Core
         /// 是否需要分页
         /// </summary>
         bool NeedPage { get; set; }
+
+        /// <summary>
+        /// 允许导出Excel的最大行数，超过行数会分成多个文件，最多不能超过100万
+        /// </summary>
+        int ExportMaxCount { get; set; }
+
+        /// <summary>
+        /// 根据允许导出的Excel最大行数，算出最终导出的Excel个数
+        /// </summary>
+        int ExportExcelCount { get; set; }
 
         /// <summary>
         /// 移除操作列
@@ -150,6 +158,7 @@ namespace WalkingTec.Mvvm.Core
         string DetailGridPrix { get; set; }
 
         void DoInitListVM();
+
         #endregion
 
     }

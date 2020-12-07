@@ -5,16 +5,20 @@
  * @modify date 2018-09-12 18:52:54
  * @desc [description]
 */
+import { MenuDataItem } from '@ant-design/pro-layout';
 import Regular from 'utils/Regular';
-import { action, observable, runInAction } from "mobx";
+import { action, observable, runInAction, computed } from "mobx";
 import lodash from 'lodash';
+import Request from 'utils/Request';
 import User from './user';
 import globalConfig from 'global.config';
+import { getLocalesValue } from 'locale';
+
 class Store {
     constructor() {
     }
     /** 菜单展开 收起 */
-    @observable collapsed = false;
+    @observable collapsed = lodash.get(globalConfig, 'collapsed', true);
     /** 菜单 */
     @observable subMenu: any[] = [];
     // 平行数据菜单
@@ -24,17 +28,17 @@ class Store {
      */
     async onInitMenu(menu: any[]) {
         if (globalConfig.development) {
-            menu = await import("../../subMenu.json").then(x => x.default);
+            menu = await Request.ajax('/subMenu.json').toPromise()//import("../../subMenu.json").then(x => x.default);
         }
         menu = lodash.map(menu, data => {
             // 跨域页面
             if (Regular.url.test(data.Url)) {
                 data.Url = "/external/" + encodeURIComponent(data.Url);
-            }
-            // public 下的 pages 页面
-            if (lodash.includes(data.Url, globalConfig.staticPage)) {
-                data.Url = "/external/" + encodeURIComponent(lodash.replace(data.Url, globalConfig.staticPage, `${window.location.origin}`));
-            }
+            } else
+                // public 下的 pages 页面
+                if (lodash.startsWith(data.Url, globalConfig.staticPage)) {
+                    data.Url = "/external/" + encodeURIComponent(lodash.replace(data.Url, globalConfig.staticPage, `${window.location.origin}`));
+                }
             return data;
         })
         this.setSubMenu(menu);
@@ -45,24 +49,42 @@ class Store {
      * @param ParentId 
      * @param children 
      */
-    recursionTree(datalist, ParentId, children = []) {
+    recursionTree(datalist, ParentId, children: MenuDataItem[] = []) {
         lodash.filter(datalist, ['ParentId', ParentId]).map(data => {
+            data = lodash.cloneDeep(data);
+            data.children = this.recursionTree(datalist, data.Id, data.children || []);
             children.push(data);
-            data.Children = this.recursionTree(datalist, data.Id, data.Children || [])
         });
         return children;
     }
     /**  设置菜单 */
     @action.bound
     setSubMenu(subMenu) {
-        this.ParallelMenu = subMenu;
-        this.subMenu = this.recursionTree(subMenu, null, []);
+        this.ParallelMenu = subMenu.map(data => {
+            return lodash.merge(data, {
+                key: data.Id,
+                path: data.Url || '',
+                name: getLocalesValue(data.Text, data.Text),
+                icon: data.Icon || "pic-right",
+                children: []
+            })
+        });
+        const menu = this.recursionTree(this.ParallelMenu, null, []);
+        console.log(menu)
+        this.subMenu = menu
     }
-    /** 菜单收起 展开 */
-    @action.bound
-    toggleCollapsed() {
-        this.collapsed = !this.collapsed;
+    /**
+   * 菜单 展开收起
+   */
+    @action
+    onCollapsed(collapsed = !this.collapsed) {
+        this.collapsed = collapsed;
+        // 主动触发 浏览器 resize 事件
         dispatchEvent(new CustomEvent('resize'));
+    }
+    @computed
+    get collapsedWidth() {
+        return this.collapsed ? 80 : 250;
     }
 
 }

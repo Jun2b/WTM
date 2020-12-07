@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore;
+using System.Collections.Generic;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using WalkingTec.Mvvm.Core;
 using WalkingTec.Mvvm.Mvc;
 using WalkingTec.Mvvm.TagHelpers.LayUI;
+using Microsoft.Extensions.Logging;
 
 namespace WalkingTec.Mvvm.VueDemo
 {
@@ -18,9 +22,20 @@ namespace WalkingTec.Mvvm.VueDemo
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .ConfigureServices(x =>
+                         .ConfigureLogging((hostingContext, logging) =>
+                         {
+                             logging.ClearProviders();
+                             logging.AddConsole();
+                             logging.AddDebug();
+                             logging.AddWTMLogger();
+                         })
+               .ConfigureServices(x =>
                 {
-                    x.AddFrameworkService();
+                    var pris = new List<IDataPrivilege>
+                        {
+                            new DataPrivilegeInfo<FrameworkRole>("测试角色", y => y.RoleName),
+                        };
+                    x.AddFrameworkService(dataPrivilegeSettings: pris);
                     x.AddLayui();
                     x.AddSwaggerGen(c =>
                     {
@@ -28,28 +43,31 @@ namespace WalkingTec.Mvvm.VueDemo
                     });
                     x.AddSpaStaticFiles(configuration =>
                     {
-                        configuration.RootPath = "ClientApp/build";
+                        configuration.RootPath = "ClientApp/dist";
                     });
+
                 })
                 .Configure(x =>
                 {
                     var env = x.ApplicationServices.GetService<IHostingEnvironment>();
+                    x.UseDeveloperExceptionPage();
+                    x.UseSpaStaticFiles();
+                    if (env.IsDevelopment())
+                    {
+                        x.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                        {
+                            HotModuleReplacement = false,
+                            ConfigFile = "config/webpack.dev.js",
+                            ProjectPath = System.IO.Path.Combine(env.ContentRootPath, "ClientApp/")
+
+                        });
+                    }
                     x.UseSwagger();
                     x.UseSwaggerUI(c =>
                     {
                         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                     });
-                    x.UseSpaStaticFiles();
                     x.UseFrameworkService();
-                    x.UseSpa(spa =>
-                    {
-                        spa.Options.SourcePath = "ClientApp";                        
-                        if (env.IsDevelopment())
-                        {                            
-                            spa.UseProxyToSpaDevelopmentServer("http://localhost:8080");
-                        }
-                    });
-
                 })
                 .Build();
 

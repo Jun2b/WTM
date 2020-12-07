@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -94,7 +94,10 @@ namespace WalkingTec.Mvvm.Core
         /// 列宽
         /// </summary>
         int? Width { get; set; }
-
+        /// <summary>
+        /// //监听单元格事件
+        /// </summary>
+        string Event { get; set; }
         /// <summary>
         /// 是否允许排序
         /// </summary>
@@ -119,6 +122,11 @@ namespace WalkingTec.Mvvm.Core
         /// 隐藏列
         /// </summary>
         bool? Hide { get; set; }
+
+        /// <summary>
+        /// 是否显示汇总
+        /// </summary>
+        bool? ShowTotal { get; set; }
 
         /// <summary>
         /// 子列
@@ -150,6 +158,11 @@ namespace WalkingTec.Mvvm.Core
         /// 最下层列
         /// </summary>
         IEnumerable<IGridColumn<T>> BottomChildren { get; }
+
+        /// <summary>
+        /// 最大深度
+        /// </summary>
+        int MaxDepth { get; }
 
         #endregion
 
@@ -200,7 +213,7 @@ namespace WalkingTec.Mvvm.Core
         /// <param name="source">源数据</param>
         /// <returns>背景色</returns>
         string GetBackGroundColor(object source);
-
+        bool HasFormat();
         #endregion
     }
 

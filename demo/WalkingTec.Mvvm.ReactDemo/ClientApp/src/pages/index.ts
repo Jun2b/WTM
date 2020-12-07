@@ -1,43 +1,40 @@
-﻿export default {
+import React from "react";
+export default {
     actionlog: {
-        name: '日志管理',
+        name: 'MenuKey.Log',
         path: '/actionlog',
-        controller: 'ActionLog',
-        component: () => import('./actionlog').then(x => x.default)
-    }
-    , frameworkgroup: {
-        name: '用户组管理',
+        controller: 'WalkingTec.Mvvm.Admin.Api,ActionLog',
+        component: React.lazy(() => import('./actionlog'))
+    },
+    frameworkgroup: {
+        name: 'MenuKey.GroupManagement',
         path: '/frameworkgroup',
-        controller: 'FrameworkGroup',
-        component: () => import('./frameworkgroup').then(x => x.default)
-    }
-
-    , frameworkrole: {
-        name: '角色管理',
+        controller: 'WalkingTec.Mvvm.Admin.Api,FrameworkGroup',
+        component: React.lazy(() => import('./frameworkgroup'))
+    },
+    frameworkrole: {
+        name: 'MenuKey.RoleManagement',
         path: '/frameworkrole',
-        controller: 'FrameworkRole',
-        component: () => import('./frameworkrole').then(x => x.default)
-    }
-
-    , frameworkuserbase: {
-        name: '用户管理',
+        controller: 'WalkingTec.Mvvm.Admin.Api,FrameworkRole',
+        component: React.lazy(() => import('./frameworkrole'))
+    },
+    frameworkuserbase: {
+        name: 'MenuKey.UserManagement',
         path: '/frameworkuser',
-        controller: 'FrameworkUser',
-        component: () => import('./frameworkuser').then(x => x.default)
-    }
-
-    , frameworkmenu: {
-        name: '菜单管理',
+        controller: 'WalkingTec.Mvvm.Admin.Api,FrameworkUser',
+        component: React.lazy(() => import('./frameworkuser'))
+    },
+    frameworkmenu: {
+        name: 'MenuKey.MenuMangement',
         path: '/frameworkmenu',
-        controller: 'FrameworkMenu',
-        component: () => import('./frameworkmenu').then(x => x.default)
-    }
-    , dataprivilege: {
-        name: '数据权限',
+        controller: 'WalkingTec.Mvvm.Admin.Api,FrameworkMenu',
+        component: React.lazy(() => import('./frameworkmenu'))
+    },
+    dataprivilege: {
+        name: 'MenuKey.DataPrivilege',
         path: '/dataprivilege',
-        controller: 'DataPrivilege',
-        component: () => import('./dataprivilege').then(x => x.default)
+        controller: 'WalkingTec.Mvvm.Admin.Api,DataPrivilege',
+        component: React.lazy(() => import('./dataprivilege'))
     }
     /**WTM**/
-
 }

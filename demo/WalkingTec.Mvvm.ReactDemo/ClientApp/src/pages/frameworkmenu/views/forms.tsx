@@ -1,12 +1,11 @@
-﻿import { Col } from 'antd';
-import { DialogForm, DialogFormDes, DialogFormSubmit, FormItem, InfoShellLayout, DialogLoadData, } from 'components/dataView';
-import { DesError } from 'components/decorators'; //错误
+import { DialogFormDes, FormItem, InfoShellLayout } from 'components/dataView';
 import lodash from 'lodash';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import Store from '../store'; //页面状态
 import Models from './models'; //模型
-import { bool } from 'prop-types';
+import { Help } from 'utils/Help';
+import { Icon } from 'antd';
 
 @DialogFormDes({
     onFormSubmit(values) {
@@ -21,8 +20,8 @@ export class InsertForm extends React.Component<any, any> {
             ...this.props,
             models: this.models,
         }
-        const IsInside = Models.getValue(props, "Entity.IsInside",true) == "true"
-       return <InfoShellLayout>
+        const IsInside = Help.FormValueEqual(props, 'Entity.IsInside', true, true);
+        return <InfoShellLayout>
             <FormItem {...props} fieId="Entity.IsInside" layout="row" value={true} />
             <FormItem {...props} fieId="Entity.Url" layout="row" hidden={IsInside} />
             <FormItem {...props} fieId="SelectedModule" hidden={!IsInside} />
@@ -33,8 +32,7 @@ export class InsertForm extends React.Component<any, any> {
             <FormItem {...props} fieId="Entity.ShowOnMenu" value={true} />
             <FormItem {...props} fieId="Entity.IsPublic" />
             <FormItem {...props} fieId="Entity.DisplayOrder" />
-            <FormItem {...props} fieId="Entity.IConId" />
-            <FormItem {...props} fieId="Entity.tt" layout="row" />
+            <FormItem {...props} fieId="Entity.ICon" />
         </InfoShellLayout>
     }
 }
@@ -60,9 +58,9 @@ export class UpdateForm extends React.Component<WTM.FormProps, any> {
             ...this.props,
             models: this.models,
         }
-        getFieldDecorator('Entity.ID', { initialValue: lodash.get(this.props.defaultValues, 'Entity.ID') })
-        const IsInside = Models.getValue(props, "Entity.IsInside") == "true"
+        const IsInside = Help.FormValueEqual(props, 'Entity.IsInside', true, true);
         return <InfoShellLayout>
+            <FormItem {...props} fieId="Entity.ID" hidden />
             <FormItem {...props} fieId="Entity.IsInside" layout="row" />
             <FormItem {...props} fieId="Entity.Url" layout="row" hidden={IsInside} />
             <FormItem {...props} fieId="SelectedModule" hidden={!IsInside} />
@@ -73,8 +71,7 @@ export class UpdateForm extends React.Component<WTM.FormProps, any> {
             <FormItem {...props} fieId="Entity.ShowOnMenu" />
             <FormItem {...props} fieId="Entity.IsPublic" />
             <FormItem {...props} fieId="Entity.DisplayOrder" />
-            <FormItem {...props} fieId="Entity.IConId" />
-
+            <FormItem {...props} fieId="Entity.ICon" />
         </InfoShellLayout>
     }
 }
@@ -95,7 +92,7 @@ export class InfoForm extends React.Component<WTM.FormProps, any> {
             models: this.models,
             display: true,
         }
-        const IsInside = Models.getValue(props, "Entity.IsInside") == "true"
+        const IsInside = Help.FormValueEqual(props, 'Entity.IsInside', true, true);
         return <InfoShellLayout>
             <FormItem {...props} fieId="Entity.IsInside" layout="row" />
             <FormItem {...props} fieId="Entity.Url" layout="row" hidden={IsInside} />
@@ -107,8 +104,9 @@ export class InfoForm extends React.Component<WTM.FormProps, any> {
             <FormItem {...props} fieId="Entity.ShowOnMenu" />
             <FormItem {...props} fieId="Entity.IsPublic" />
             <FormItem {...props} fieId="Entity.DisplayOrder" />
-            <FormItem {...props} fieId="Entity.IConId" />
-
+            <FormItem {...props} fieId="Entity.ICon" render={event => {
+                return <Icon type={lodash.get(event, 'defaultValues.Entity.ICon')} />
+            }} />
         </InfoShellLayout>
     }
 }

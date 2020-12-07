@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Newtonsoft.Json;
 using WalkingTec.Mvvm.Core.Extensions;
 
 namespace WalkingTec.Mvvm.Core
@@ -13,6 +14,7 @@ namespace WalkingTec.Mvvm.Core
     /// <typeparam name="T">列表的数据源类</typeparam>
     public class GridColumn<T> : IGridColumn<T> where T : TopBasePoco
     {
+        public bool? ShowTotal { get; set; }
         public GridColumn(Expression<Func<T, object>> columnExp, int? width)
         {
             ColumnExp = columnExp;
@@ -34,9 +36,9 @@ namespace WalkingTec.Mvvm.Core
                 if (_field == null)
                 {
                     _field = PI?.Name;
-                    if(_field == null)
+                    if (_field == null)
                     {
-                        _field = (ColumnExp?.Body as ConstantExpression)?.Value?.ToString();
+                        _field = CompiledCol?.Invoke(null).ToString();
                     }
                 }
                 return _field;
@@ -61,14 +63,20 @@ namespace WalkingTec.Mvvm.Core
                 }
                 return _title;
             }
-            set { _title = value; }
+            set
+            {
+                _title = value;
+            }
         }
 
         /// <summary>
         /// 列宽
         /// </summary>
         public int? Width { get; set; }
-
+        /// <summary>
+        /// //监听单元格事件
+        /// </summary>
+        public string Event { get; set; }
         /// <summary>
         /// 是否允许排序
         /// </summary>
@@ -93,6 +101,11 @@ namespace WalkingTec.Mvvm.Core
         /// 隐藏列
         /// </summary>
         public bool? Hide { get; set; }
+
+        /// <summary>
+        /// 是否禁止导出此列
+        /// </summary>
+        public bool DisableExport { get; set; }
 
         /// <summary>
         /// 子列
@@ -195,9 +208,30 @@ namespace WalkingTec.Mvvm.Core
         /// </summary>
         public Expression<Func<T, object>> ColumnExp { get; set; }
 
+        private int? _maxDepth;
+
+        /// <summary>
+        /// 最大深度
+        /// </summary>
+        public int MaxDepth
+        {
+            get
+            {
+                if (_maxDepth == null)
+                {
+                    _maxDepth = 1;
+                    if (Children?.Count() > 0)
+                    {
+                        _maxDepth += Children.Max(x => x.MaxDepth);
+                    }
+                }
+                return _maxDepth.Value;
+            }
+        }
+
         #region 暂时没有用
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public string Id { get; set; }
 
@@ -226,7 +260,7 @@ namespace WalkingTec.Mvvm.Core
         /// <summary>
         /// 获取值域类型
         /// </summary>
-        /// <returns></returns>       
+        /// <returns></returns>
         public Type FieldType
         {
             get
@@ -333,6 +367,19 @@ namespace WalkingTec.Mvvm.Core
             }
         }
 
+
+        public bool HasFormat()
+        {
+            if(Format != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// 获取单元格要输出的内容
         /// </summary>
@@ -357,12 +404,24 @@ namespace WalkingTec.Mvvm.Core
                 {
                     rv = (col as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss");
                 }
-                else if(col is Enum){
+                else if (col.GetType().IsEnumOrNullableEnum())
+                {
                     rv = (int)col;
+                }
+                else if (col.GetType().Namespace.Equals("System") == false)
+                {
+                    if (needFormat == false)
+                    {
+                        rv = JsonConvert.SerializeObject(col);
+                    }
+                    else
+                    {
+                        rv = col.ToString();
+                    }
                 }
                 else
                 {
-                    rv = col?.ToString();
+                    rv = col.ToString();
                 }
             }
             else

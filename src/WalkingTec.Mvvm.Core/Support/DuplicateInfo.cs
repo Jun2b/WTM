@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -35,7 +35,7 @@ namespace WalkingTec.Mvvm.Core
         /// 添加一组重复信息，一组中的多个字段必须同时重复才认为是重复数据
         /// </summary>
         /// <param name="FieldExps">一个或多个重复数据字段</param>
-        public void AddGroup(params DuplicatedField<T>[] FieldExps)
+        public DuplicatedInfo<T> AddGroup(params DuplicatedField<T>[] FieldExps)
         {
             DuplicatedGroup<T> newGroup = new DuplicatedGroup<T>()
             {
@@ -46,6 +46,7 @@ namespace WalkingTec.Mvvm.Core
                 newGroup.Fields.Add(exp);
             }
             Groups.Add(newGroup);
+            return this;
         }
     }
 
@@ -107,10 +108,13 @@ namespace WalkingTec.Mvvm.Core
             }
             //生成一个表达式，类似于 x=>x.field == val
             var splits = propName.Split('.');
-            Expression left = Expression.PropertyOrField(para, splits[0]);
+            var idproperty = typeof(T).GetProperties().Where(x => x.Name == splits[0]).FirstOrDefault();
+
+            Expression left = Expression.Property(para, idproperty);
             for (int i = 1; i < splits.Length; i++)
             {
-                left = Expression.PropertyOrField(left, splits[i]);
+                var tempproperty = typeof(T).GetProperties().Where(x => x.Name == splits[i]).FirstOrDefault();
+                left = Expression.Property(left, tempproperty);
             }
 
             if (val != null && left.Type.IsGeneric(typeof(Nullable<>)))
@@ -243,7 +247,7 @@ namespace WalkingTec.Mvvm.Core
                     //如果值为空字符串且没要求必填，则跳过
                     if (vv is string && vv.ToString() == "")
                     {
-                        var requiredAttrs = li.GetType().GetProperty(SubFieldExp.GetPropertyName()).GetCustomAttributes(typeof(RequiredAttribute), false).ToList();
+                        var requiredAttrs = li.GetType().GetSingleProperty(SubFieldExp.GetPropertyName()).GetCustomAttributes(typeof(RequiredAttribute), false).ToList();
 
                         if (requiredAttrs == null || requiredAttrs.Count == 0)
                         {
@@ -307,10 +311,10 @@ namespace WalkingTec.Mvvm.Core
             }
             if (allExp.Count > 1)
             {
-                rv = Expression.Or(allExp[0], allExp[1]);
+                rv = Expression.OrElse(allExp[0], allExp[1]);
                 for (int i = 2; i < allExp.Count; i++)
                 {
-                    rv = Expression.Or(rv, allExp[i]);
+                    rv = Expression.OrElse(rv, allExp[i]);
                 }
             }
             return rv;
